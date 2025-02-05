@@ -40,9 +40,10 @@
 #include <string>
 #include <vector>
 
-#include "../ISA_Def/accelwattch_component_mapping.h"
-#include "../ISA_Def/dummy_hopper_opcode.h"
 #include "../ISA_Def/dummy_ada_opcode.h"
+
+#include "../ISA_Def/accelwattch_component_mapping.h"
+#include "../ISA_Def/hopper_opcode.h"
 #include "../ISA_Def/ampere_opcode.h"
 #include "../ISA_Def/kepler_opcode.h"
 #include "../ISA_Def/pascal_opcode.h"
@@ -106,10 +107,15 @@ trace_kernel_info_t::trace_kernel_info_t(dim3 gridDim, dim3 blockDim,
   // resolve the binary version
   if (kernel_trace_info->binary_verion == HOPPER_H100_BINART_VERSION)
     OpcodeMap = &Hopper_OpcodeMap;
+<<<<<<< HEAD
   else if (kernel_trace_info->binary_verion == ADA_BINART_VERSION)
     OpcodeMap = &Ada_OpcodeMap;
   else if (kernel_trace_info->binary_verion == AMPERE_RTX_BINART_VERSION ||
            kernel_trace_info->binary_verion == AMPERE_A100_BINART_VERSION)
+=======
+  else if (kernel_trace_info->binary_verion == AMPERE_RTX_BINART_VERSION ||
+      kernel_trace_info->binary_verion == AMPERE_A100_BINART_VERSION)
+>>>>>>> a127221... supporting code to run hopper traces
     OpcodeMap = &Ampere_OpcodeMap;
   else if (kernel_trace_info->binary_verion == VOLTA_BINART_VERSION)
     OpcodeMap = &Volta_OpcodeMap;
