@@ -44,26 +44,33 @@ fi
 # If we can't find an already set version of GPGPU-Sim, then pull one locally using the repos specificed above
 if [ -z "$GPGPUSIM_SETUP_ENVIRONMENT_WAS_RUN" -o ! -d "$GPGPUSIM_ROOT" ]; then
     echo "No \$GPGPUSIM_ROOT, testing for local folder in: \"$ACCELSIM_ROOT/gpgpu-sim\""
-    if [ ! -d "$ACCELSIM_ROOT/gpgpu-sim" ] ; then
-        echo "No \$ACCELSIM_ROOT/gpgpu-sim."
-        if [ ! -z "$PS1" ]; then
-            read -e -p "Please specify the repo you want to sync for GPGPU-Sim (default is $GPGPUSIM_REPO):" user_repo
-        fi
-        if [ -z $user_repo ] ; then
-            user_repo=$GPGPUSIM_REPO
-        fi
+    
+#---------------- dont't download GPGPU-sim in this script, add GPGPU-sim as git submodule-------------    
+    # if [ ! -d "$ACCELSIM_ROOT/gpgpu-sim" ] ; then
+    #     echo "No \$ACCELSIM_ROOT/gpgpu-sim."
+    #     if [ ! -z "$PS1" ]; then
+    #         read -e -p "Please specify the repo you want to sync for GPGPU-Sim (default is $GPGPUSIM_REPO):" user_repo
+    #     fi
+    #     if [ -z $user_repo ] ; then
+    #         user_repo=$GPGPUSIM_REPO
+    #     fi
 
-        if [ ! -z "$PS1" ]; then
-            read -e -p "Please specify the branch for GPGPU-Sim you would like to use (default is $GPGPUSIM_BRANCH):" user_branch
-        fi
-        if [ -z $user_branch ] ; then
-            user_branch=$GPGPUSIM_BRANCH
-        fi
-        git clone $user_repo $ACCELSIM_ROOT/gpgpu-sim
-        git -C $ACCELSIM_ROOT/gpgpu-sim/ checkout $user_branch
-    else
-        echo "Found $ACCELSIM_ROOT/gpgpu-sim, using existing local location. Not sycning anything."
+    #     if [ ! -z "$PS1" ]; then
+    #         read -e -p "Please specify the branch for GPGPU-Sim you would like to use (default is $GPGPUSIM_BRANCH):" user_branch
+    #     fi
+    #     if [ -z $user_branch ] ; then
+    #         user_branch=$GPGPUSIM_BRANCH
+    #     fi
+    #     git clone $user_repo $ACCELSIM_ROOT/gpgpu-sim
+    #     git -C $ACCELSIM_ROOT/gpgpu-sim/ checkout $user_branch
+    # else
+    #     echo "Found $ACCELSIM_ROOT/gpgpu-sim, using existing local location. Not sycning anything."
+    # fi
+    if [ ! -d "$ACCELSIM_ROOT/gpgpu-sim" ] ; then
+    echo "Error: gpgpu-sim submodule is missing. Please initialize the submodule using 'git submodule update --init --recursive'."
+    exit 1
     fi
+#-------------------------------------
     source $ACCELSIM_ROOT/gpgpu-sim/setup_environment $ACCELSIM_CONFIG || return 1
 else
     source $GPGPUSIM_ROOT/setup_environment $ACCELSIM_CONFIG || return 1

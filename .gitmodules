@@ -1,0 +1,4 @@
+[submodule "gpu-simulator/gpgpu-sim"]
+	path = gpu-simulator/gpgpu-sim
+	url = git@github.com:ymingX/gpgpu-sim.git
+	branch = dev
