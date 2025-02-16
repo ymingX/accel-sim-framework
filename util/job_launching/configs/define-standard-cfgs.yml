@@ -1,16 +1,10 @@
 # Basefile Configs
 
-# Pascal
-TITANX:
-    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM6_TITANX/gpgpusim.config"
+H100:
+    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM90_H100/gpgpusim.config"
 
-TITANXX:
-    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/TITANX-pascal/gpgpusim.config"
-
-#Kepler
-TITANK:
-    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM3_KEPLER_TITAN/gpgpusim.config"
-
+RTX4090:
+    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM89_RTX4090/gpgpusim.config"
 #Ampere RTX 3070
 RTX3070:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM86_RTX3070/gpgpusim.config"
@@ -42,6 +36,16 @@ QV100_old:
 GV100:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM7_GV100/gpgpusim.config"
 
+# Pascal
+TITANX:
+    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM6_TITANX/gpgpusim.config"
+
+TITANXX:
+    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/TITANX-pascal/gpgpusim.config"
+
+#Kepler
+TITANK:
+    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM3_KEPLER_TITAN/gpgpusim.config"
 # Fermi
 GTX480:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM2_GTX480/gpgpusim.config"
