@@ -622,7 +622,8 @@ def parse_hw_csv(csv_file, hw_data, appargs, kdata, logger):
     cfg = ""
     cfg_col = None
 
-    with open(csv_file, "rU") as data_file:
+    # with open(csv_file, "rU") as data_file:
+    with open(csv_file, "r", newline='') as data_file:
         logger.log("Parsing HW csv file {0}".format(csv_file))
         reader = csv.reader(data_file)  # define reader object
         state = "start"
