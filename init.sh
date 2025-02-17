@@ -4,7 +4,7 @@ echo "==========Init NVBIT: Start========"
 {
 	echo "==========Init NVBIT: start========"
 	./util/tracer_nvbit/install_nvbit.sh
-	make -j 80 -C ./util/tracer_nvbit/
+	make -j  -C ./util/tracer_nvbit/
 	echo "==========Init NVBIT: Finished====="
 } > nvbit.log 2>&1 
 echo "==========Init NVBIT: Finished====="
@@ -17,8 +17,8 @@ echo "==========Init gpu-app-collection: Start========"
         # git clone git@github.com:accel-sim/gpu-app-collection.git
         git clone git@github.com:ymingX/gpu-app-collection.git
         source ./gpu-app-collection/src/setup_environment
-        # make -j -C ./gpu-app-collection/src all
-        # make -C ./gpu-app-collection/src data
+         make -j -C ./gpu-app-collection/src all
+         make -C ./gpu-app-collection/src data
 
         # Run the applications with the tracer (remember you need a real GPU for this):
         # ./util/tracer_nvbit/run_hw_trace.py -B GPU_Microbenchmark -D <gpu-device-num-to-run-on>
