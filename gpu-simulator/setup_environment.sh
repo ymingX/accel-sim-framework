@@ -31,7 +31,7 @@ export ACCELSIM_ROOT="$( cd "$( dirname "$BASH_SOURCE" )" && pwd )"
 #   Different branches of Accel-Sim should have different values here
 #   For development, we use our internal repo and the dev branch
 #       Ideally, when we release, it should be based off a GPGPU-Sim release.
-export GPGPUSIM_REPO="${GPGPUSIM_REPO:=https://github.com/accel-sim/gpgpu-sim_distribution.git}"
+export GPGPUSIM_REPO="${GPGPUSIM_REPO:=git@github.com:accel-sim/gpgpu-sim_distribution.git}"
 export GPGPUSIM_BRANCH="${GPGPUSIM_BRANCH:=dev}"
 
 # Help the user out by setting the default CUDA_INSTALL_PATH, if it is not already set
@@ -82,7 +82,7 @@ else
 fi
 
 if [ ! -d "$ACCELSIM_ROOT/extern/pybind11" ] ; then
-    git clone --depth 1 -b master https://github.com/pybind/pybind11.git $ACCELSIM_ROOT/extern/pybind11
+    git clone --depth 1 -b master git@github.com:pybind/pybind11.git $ACCELSIM_ROOT/extern/pybind11
 fi
 
 export PYTHONPATH=$ACCELSIM_ROOT/build/$ACCELSIM_CONFIG:$PYTHONPATH
