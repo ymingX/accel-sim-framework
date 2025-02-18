@@ -27,6 +27,17 @@ echo "Installing..."
 make install || { echo "Installation failed!"; exit 1; }
 
 echo "xutils-dev (util-macros) installed successfully to $INSTALL_PATH"
+
+#---------------
+cd "$DOWNLOAD_PATH" || exit 1
+wget --no-check-certificate  https://www.x.org/releases/individual/util/makedepend-1.0.6.tar.gz
+tar -xzf makedepend-1.0.6.tar.gz
+cd makedepend-1.0.6
+./configure --prefix="$INSTALL_PATH"
+make -j$(nproc)
+make install
+which makedepend
+
 #---------------
 # cd "$DOWNLOAD_PATH" || exit 1
 # wget https://www.x.org/releases/individual/proto/xproto-7.0.31.tar.gz
