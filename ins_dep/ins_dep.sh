@@ -25,7 +25,7 @@ mkdir -p $DOWNLOAD_PATH
 declare -A dependency_mapping=(
     ["wget"]="wget"
     ["build-essential"]="stdio.h"  # 检查是否有标准库头文件
-    ["xutils-dev"]="X.h"          # 示例：X11 相关头文件
+    ["xutils-dev"]="makedepend"          # 示例：X11 相关头文件
     ["bison"]="bison"
     ["zlib1g-dev"]="zlib.h"
     ["flex"]="flex"
@@ -39,7 +39,7 @@ declare -A dependency_mapping=(
     ["python-setuptools"]="python"
     ["python-pip"]="pip"
 )
-
+dependency_order=("wget" "build-essential" "xutils-dev" "bison" "zlib1g-dev" "flex" "libglu1-mesa-dev" "git" "g++" "libssl-dev" "libxml2-dev" "libboost-all-dev" "vim" "python-setuptools" "python-pip")
 # 环境变量路径
 PATHS=(${C_INCLUDE_PATH//:/ } /usr/include /usr/local/include ${LD_LIBRARY_PATH//:/ } /usr/lib /usr/local/lib ${PATH//:/ } ${PKG_CONFIG_PATH//:/ } )
 
@@ -47,9 +47,9 @@ PATHS=(${C_INCLUDE_PATH//:/ } /usr/include /usr/local/include ${LD_LIBRARY_PATH/
 check_dependency() {
     local name=$1
     local target=${dependency_mapping[$name]}
-    # 检查头文件是否在 C_INCLUDE_PATH 或常见路径中
     for path in "${PATHS[@]}"; do
-        if [ -f "$path/$target" ]; then
+        # echo "$path/$target"
+        if [ -e "$path/$target" ]; then
             echo -e "${GREEN}Dependency $name ($target) is found in $path.${NC}"
             return 0
         fi
@@ -60,17 +60,17 @@ check_dependency() {
 }
 
 # 检查所有依赖
-for dep in "${!dependency_mapping[@]}"; do
+for dep in "${dependency_order[@]}"; do
     check_dependency "$dep" 
      if [ $? -ne 0 ]; then
         echo -e "Installing missing dependency: ${ORANGE}$dep${NC}"
         
         # 调用对应的 install_xxx.sh 脚本
         script_name="${dep}.sh"
-        if [ -f "./$script_name" ]; then
-            bash ./$script_name
-        else
-            echo -e "${RED}Error: $script_name not found. Please create the script to install $dep.${NC}"
-        fi
+        # if [ -f "./$script_name" ]; then
+        #     bash ./$script_name
+        # else
+        #     echo -e "${RED}Error: $script_name not found. Please create the script to install $dep.${NC}"
+        # fi
     fi
 done
