@@ -8,7 +8,7 @@ BOOST_URL="https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/s
 
 # 下载 Boost 的源码包
 echo "Downloading Boost from $BOOST_URL..."
-wget "$BOOST_URL" -O "boost_${BOOST_VERSION_UNDERSCORE}.tar.gz" || { echo "Download failed!"; exit 1; }
+wget --no-check-certificate "$BOOST_URL" -O "boost_${BOOST_VERSION_UNDERSCORE}.tar.gz" || { echo "Download failed!"; exit 1; }
 
 # 解压源码包
 echo "Extracting boost_${BOOST_VERSION_UNDERSCORE}.tar.gz..."

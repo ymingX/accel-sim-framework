@@ -7,7 +7,7 @@ OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
 
 # 下载 OpenSSL 的源码包
 echo "Downloading OpenSSL from $OPENSSL_URL..."
-wget "$OPENSSL_URL" -O "openssl-${OPENSSL_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
+wget --no-check-certificate "$OPENSSL_URL" -O "openssl-${OPENSSL_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
 
 # 解压源码包
 echo "Extracting openssl-${OPENSSL_VERSION}.tar.gz..."

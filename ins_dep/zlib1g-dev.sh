@@ -8,7 +8,7 @@ ZLIB_URL="https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz"
 
 # 下载 zlib 源码包
 echo "Downloading zlib from $ZLIB_URL..."
-wget "$ZLIB_URL" -O "zlib-${ZLIB_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
+wget --no-check-certificate "$ZLIB_URL" -O "zlib-${ZLIB_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
 
 # 解压源码包
 echo "Extracting zlib-${ZLIB_VERSION}.tar.gz..."

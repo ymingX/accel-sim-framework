@@ -7,7 +7,7 @@ cd "$DOWNLOAD_PATH" || exit 1
 
 
 echo "Downloading xutils-dev (util-macros) "
-wget https://xorg.freedesktop.org/releases/individual/util/util-macros-1.19.3.tar.bz2
+wget --no-check-certificate https://xorg.freedesktop.org/releases/individual/util/util-macros-1.19.3.tar.bz2
 
 # 解压源码包
 echo "Extracting xutils-dev_7.7+5ubuntu2.tar.gz..."

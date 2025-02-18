@@ -7,7 +7,7 @@ LIBXML2_URL="http://xmlsoft.org/sources/libxml2-${LIBXML2_VERSION}.tar.gz"
 
 # 下载 libxml2 的源码包
 echo "Downloading libxml2 from $LIBXML2_URL..."
-wget "$LIBXML2_URL" -O "libxml2-${LIBXML2_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
+wget --no-check-certificate "$LIBXML2_URL" -O "libxml2-${LIBXML2_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
 
 # 解压源码包
 echo "Extracting libxml2-${LIBXML2_VERSION}.tar.gz..."

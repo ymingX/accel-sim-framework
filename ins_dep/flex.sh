@@ -7,7 +7,7 @@ FLEX_URL="https://github.com/westes/flex/releases/download/v${FLEX_VERSION}/flex
 
 # 下载 flex 源码包
 echo "Downloading flex from $FLEX_URL..."
-wget "$FLEX_URL" -O "flex-${FLEX_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
+wget --no-check-certificate "$FLEX_URL" -O "flex-${FLEX_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
 
 # 解压源码包
 echo "Extracting flex-${FLEX_VERSION}.tar.gz..."

@@ -7,7 +7,7 @@ BISON_URL="https://ftp.gnu.org/gnu/bison/bison-${BISON_VERSION}.tar.gz"
 
 # 下载 bison 源码包
 echo "Downloading bison from $BISON_URL..."
-wget "$BISON_URL" -O "bison-${BISON_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
+wget --no-check-certificate "$BISON_URL" -O "bison-${BISON_VERSION}.tar.gz" || { echo "Download failed!"; exit 1; }
 
 # 解压源码包
 echo "Extracting bison-${BISON_VERSION}.tar.gz..."
