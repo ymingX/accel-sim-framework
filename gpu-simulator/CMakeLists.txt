@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
+include_directories($ENV{CUDA_INSTALL_PATH}/include)
+link_directories($ENV{CUDA_INSTALL_PATH}/lib64)
 
+find_library(ZLIB_LIBRARY z HINTS /lib/x86_64-linux-gnu)
 # Project name and version
 project(Accel-Sim
         VERSION 1.2.0 
@@ -76,11 +79,11 @@ include_directories(trace-parser)
 add_executable(accel-sim.out accel-sim.cc main.cc)
 target_link_libraries(accel-sim.out PUBLIC cuda ptxsim gpgpusim intersim accelwattch entrypoint)
 target_link_libraries(accel-sim.out PUBLIC -lm -lz -lGL -pthread)
-target_link_libraries(accel-sim.out PUBLIC trace-driven trace-parser)
+target_link_libraries(accel-sim.out PUBLIC trace-driven trace-parser -lz)
 
 pybind11_add_module(accel_sim ./accel-sim.cc ./python_wrapper/python_wrapper.cc)
 target_link_libraries(accel_sim PRIVATE cuda ptxsim gpgpusim intersim accelwattch entrypoint)
-target_link_libraries(accel_sim PRIVATE trace-driven trace-parser)
+target_link_libraries(accel_sim PRIVATE trace-driven trace-parser -lz)
 
 # allow failure for stubgen
 add_custom_target(gen_pyi ALL
