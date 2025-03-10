@@ -1,0 +1,98 @@
+#   execs:
+#       - <exec_name_1>:
+#           - args: <commandline arg_list 1> # Leave blank if no arguments
+#             <optional> accel-sim-mem: <xG>
+#           - args: <commandline arg_list 2>
+#           ...
+#       - <exec_name_2>
+#           ...
+#       ...
+# If you have a bunch of random benchmarks in random places, then a "suite" can be just one benchmark
+
+# Rodinia 2.0 implemented with a pass/fail functional test
+
+
+Hopper_Microbenchmark_mma:
+    exec_dir: "$GPUAPPS_ROOT/bin/Hopper_Microbenchmark/TensorCores/mma"
+    data_dirs: "$GPUAPPS_ROOT/data_dirs/"
+    execs:
+        - m16n8k4_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k4_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k8_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k8_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k16_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k16_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k32_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k64_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k64_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k128_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k128_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k256_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k256_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m8n8k16_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m8n8k16_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m8n8k32_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m8n8k32_single_SM:
+            - args:
+              accel-sim-mem: 8G
+
+Hopper_Microbenchmark_spmma:
+    exec_dir: "$GPUAPPS_ROOT/bin/Hopper_Microbenchmark/TensorCores/spmma"
+    data_dirs: "$GPUAPPS_ROOT/data_dirs/"
+    execs:
+        - m16n8k8_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k8_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k16_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k16_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k32_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k32_single_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k64_all_SM:
+            - args:
+              accel-sim-mem: 8G
+        - m16n8k64_single_SM:
+            - args:
+              accel-sim-mem: 8G
