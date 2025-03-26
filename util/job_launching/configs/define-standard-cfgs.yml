@@ -3,8 +3,9 @@
 H100:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM90_H100/gpgpusim.config"
 
+#dummy config
 RTX4090:
-    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM89_RTX4090/gpgpusim.config"
+    base_file: "$GPGPUSIM_ROOT/configs/experimental-cfgs/SM89_RTX4090/gpgpusim.config"
 #Ampere RTX 3070
 RTX3070:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM86_RTX3070/gpgpusim.config"
