@@ -10,8 +10,11 @@ GENCODE_SM70 ?= -gencode=arch=compute_70,code=\"sm_70,compute_70\"
 GENCODE_SM75 ?= -gencode=arch=compute_75,code=\"sm_75,compute_75\"
 GENCODE_SM80 ?= -gencode=arch=compute_80,code=\"sm_80,compute_80\"
 GENCODE_SM86 ?= -gencode=arch=compute_86,code=\"sm_86,compute_86\"
+GENCODE_SM89 ?= -gencode=arch=compute_89,code=\"sm_89,compute_89\"
+GENCODE_SM90 ?= -gencode=arch=compute_90,code=\"sm_90,compute_90\"
 
-CUOPTS =  $(GENCODE_ARCH) $(GENCODE_SM50) $(GENCODE_SM60) $(GENCODE_SM62) $(GENCODE_SM70) $(GENCODE_SM75) $(GENCODE_SM80)
+
+CUOPTS =  $(GENCODE_SM75) $(GENCODE_SM80) $(GENCODE_SM86) $(GENCODE_SM89) $(GENCODE_SM90)
 
 CC := nvcc
 

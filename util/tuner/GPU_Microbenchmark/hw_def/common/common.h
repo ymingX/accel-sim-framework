@@ -16,7 +16,7 @@ enum core_model { shared = 0, subcore = 1 };
 
 static const char *core_model_str[] = {"none", "shared", "subcore"};
 
-enum dram_model { GDDR5 = 1, GDDR5X = 2, GDDR6 = 3, HBM = 4 };
+enum dram_model { GDDR5 = 1, GDDR5X = 2, GDDR6 = 3, HBM = 4, GDDR6X = 5 };
 
 // GPU error check
 #define gpuErrchk(ans)                                                         \
@@ -54,12 +54,11 @@ bool isPowerOfTwo(int n) {
   return (ceil(log2(n)) == floor(log2(n)));
 }
 
-static const char *dram_model_str[] = {"none", "GDDR5", "GDDR5X", "GDDR6",
-                                       "HBM"};
-static const unsigned dram_model_bus_width[] = {0, 32, 32, 16, 128}; // in bits
-static const unsigned dram_model_mem_per_ctrlr[] = {0, 1, 1, 1, 1};
-static const unsigned dram_model_burst_length[] = {0, 8, 8, 16, 2};
-static const unsigned dram_model_freq_ratio[] = {0, 4, 4, 4, 2};
+static const char *dram_model_str[] = {"none", "GDDR5", "GDDR5X", "GDDR6","HBM","GDDR6X"};
+static const unsigned dram_model_bus_width[] = {0, 32, 32, 16, 128, 16}; // in bits
+static const unsigned dram_model_mem_per_ctrlr[] = {0, 1, 1, 2, 1, 2};
+static const unsigned dram_model_burst_length[] = {0, 8, 8, 16, 2, 16};
+static const unsigned dram_model_freq_ratio[] = {0, 4, 4, 8, 2, 8};
 // atom size =
 // dram_model_channel_width*dram_model_mem_per_ctrlr*dram_model_burst_length
 unsigned get_atom_size_inByte(enum dram_model model) {
