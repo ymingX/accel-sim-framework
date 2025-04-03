@@ -139,10 +139,11 @@ int main() {
   unsigned N = ARRAY_SIZE * 6 * sizeof(float); // 6 arrays of floats types
   float max_bw = (float)MEM_BITWIDTH * MEM_CLK_FREQUENCY * 2 / 1e3 / 8;
   mem_bw = (float)(N) / ((float)(stopClk[0] - startClk[0]));
+  float mem_bw_GBps;
   printf("Mem BW= %f (Byte/Clk)\n", mem_bw);
-  printf("Mem BW= %f (GB/sec)\n", (float)N / milliseconds / 1e6);
+  printf("Mem BW= %f (GB/sec)\n", mem_bw_GBps=(float)N / milliseconds / 1e6);
   printf("Max Theortical Mem BW= %f (GB/sec)\n", max_bw);
-  printf("Mem Efficiency = %f %%\n", (mem_bw / max_bw) * 100);
+  printf("Mem Efficiency = %f %%\n", (mem_bw_GBps / max_bw) * 100);
 
   printf("Total Clk number = %u \n", stopClk[0] - startClk[0]);
 }
