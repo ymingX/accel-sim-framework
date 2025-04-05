@@ -16,6 +16,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 #include <vector>
 /* every tool needs to include this once */
 #include "nvbit_tool.h"
@@ -57,10 +58,9 @@ int lineinfo = 0;
 /* used to select region of interest when active from start is 0 */
 bool active_region = true;
 
-
 /* Should we terminate the program once we are done tracing? */
 int terminate_after_limit_number_of_kernels_reached = 0;
-std::string user_defined_folders = "";
+int user_defined_folders = 0;
 
 /* Use xz to compress the *.trace file */
 int xz_compress_trace = 0;
@@ -69,10 +69,16 @@ int xz_compress_trace = 0;
 std::map<std::string, int> opcode_to_id_map;
 std::map<int, std::string> id_to_opcode_map;
 
-std::string trace_folder = getcwd(NULL, 0);
-std::string traces_location = trace_folder + "/traces/";
-std::string kernelslist_location = trace_folder + "/traces/kernelslist";
-std::string stats_location = trace_folder + "/traces/stats.csv";
+std::string user_folder = getcwd(NULL, 0);
+std::string cwd = getcwd(NULL, 0);
+std::string traces_location = cwd + "/traces/";
+std::string kernelslist_location = cwd + "/traces/kernelslist";
+std::string stats_location = cwd + "/traces/stats.csv";
+
+std::unordered_map<CUcontext, std::string> ctx_kernelslist;
+std::unordered_map<CUcontext, std::string> ctx_stats_location;
+std::unordered_map<CUcontext, int> ctx_kernelid;
+std::unordered_map<CUcontext, FILE*> ctx_resultsFile;
 
 /* kernel instruction counter, updated by the GPU */
 uint64_t dynamic_kernel_limit_start =
@@ -111,18 +117,22 @@ void nvbit_at_init() {
   GET_VAR_INT(
       terminate_after_limit_number_of_kernels_reached, "TERMINATE_UPON_LIMIT",
       0, "Stop the process once the current kernel > DYNAMIC_KERNEL_LIMIT_END");
+  GET_VAR_INT(user_defined_folders, "USER_DEFINED_FOLDERS", 0,
+              "Uses the user defined "
+              "folder TRACES_FOLDER path environment");
   GET_VAR_INT(xz_compress_trace, "TRACE_FILE_COMPRESS", 1,
               "Create xz-compressed trace"
               "file");
-  GET_VAR_STR(user_defined_folders, "TRACES_FOLDER",  
-  "Stores traces in TRACES_FOLDER; defaults to cwd if unset.")  
-            
   std::string pad(100, '-');
   printf("%s\n", pad.c_str());
 
   if (active_from_start == 0) {
     active_region = false;
   }
+  char * usr_defined_folder = std::getenv("TRACES_FOLDER");
+  if (usr_defined_folder != NULL)
+    user_folder = usr_defined_folder;
+
 }
 
 /* Set used to avoid re-instrumenting the same functions multiple times */
@@ -155,6 +165,13 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
     /* iterate on all the static instructions in the function */
     for (auto instr : instrs) {
       uint32_t line_num = 0;
+      // Temporary workaround for a bug in NVBit 1.7.4, which does not correctly handle `call.rel`.  
+      // Instrumenting this instruction leads to illegal memory access.  
+      // Refer to: https://github.com/NVlabs/NVBit/issues/142#issue-2911561744  
+      if(!strcmp(instr->getOpcode(), "CALL.REL.NOINC")){
+        printf("Warning: Ignoring CALL.REL.NOINC (NVBit 1.7.4 bug)\n");
+        continue;
+      } 
 
       if (cnt < instr_begin_interval || cnt >= instr_end_interval) {
         cnt++;
@@ -302,11 +319,8 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
 
   if (first_call == true) {
     first_call = false;
-    if(!user_defined_folders.empty())
-      traces_location = user_defined_folders;
-    
-    
-    if (mkdir(traces_location.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+    std::string traces_folder = user_folder + "/traces";
+    if (mkdir(traces_folder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
       if (errno == EEXIST) {
         // alredy exists
       } else {
@@ -325,43 +339,8 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
         active_region = false;
     }
 
-      // This command will find the number of sub-dirs, we then create a new sub-dir by adding 1 to the
-      // existing number of sub dirs. i.e. "run-n"
-      std::string command = "ls -d " + traces_location + "/run*/ 2>/dev/null | wc -l";
-      FILE* pipe = popen(command.c_str(), "r");
-      if (!pipe) {
-          std::cerr << "Error: Failed to execute command.\n";
-          return ;
-      }
-  
-      int dir_count = 0;
-      fscanf(pipe, "%d", &dir_count); // Read the count
-      pclose(pipe);
-      traces_location += "/run-" + std::to_string(dir_count);
-    
-    
-    if (mkdir(traces_location.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
-      if (errno == EEXIST) {
-        // alredy exists
-      } else {
-        // something else
-        std::cout << "cannot create folder error:" << strerror(errno)
-                  << std::endl;
-        return;
-      }
-      
-
-    }
-
-    kernelslist_location = traces_location + "/kernelslist";
-    stats_location = traces_location + "/stats.csv";
-    printf("\nTraces location is %s \n", traces_location.c_str());
-    printf("Kernelslist location is %s \n", kernelslist_location.c_str());
-    printf("Stats location is %s \n", stats_location.c_str());
-    
-
-    kernelsFile = fopen(kernelslist_location.c_str(), "w");
-    statsFile = fopen(stats_location.c_str(), "w");
+    kernelsFile = fopen(ctx_kernelslist[ctx].c_str(), "w");
+    statsFile = fopen(ctx_stats_location[ctx].c_str(), "w");
     fprintf(statsFile,
             "kernel id, kernel mangled name, grid_dimX, grid_dimY, grid_dimZ, "
             "#blocks, block_dimX, block_dimY, block_dimZ, #threads, "
@@ -373,7 +352,7 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
     if (!is_exit) {
       cuMemcpyHtoD_v2_params *p = (cuMemcpyHtoD_v2_params *)params;
       char buffer[1024];
-      kernelsFile = fopen(kernelslist_location.c_str(), "a");
+      kernelsFile = fopen(ctx_kernelslist[ctx].c_str(), "a");
       sprintf(buffer, "MemcpyHtoD,0x%016lx,%lld", p->dstDevice, p->ByteCount);
       fprintf(kernelsFile, buffer);
       fprintf(kernelsFile, "\n");
@@ -386,12 +365,12 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
 
     if (!is_exit) {
       if (active_from_start && dynamic_kernel_limit_start &&
-          kernelid == dynamic_kernel_limit_start)
+          ctx_kernelid[ctx] == dynamic_kernel_limit_start)
         active_region = true;
 
       if (terminate_after_limit_number_of_kernels_reached &&
           dynamic_kernel_limit_end != 0 &&
-          kernelid > dynamic_kernel_limit_end) {
+          ctx_kernelid[ctx] > dynamic_kernel_limit_end) {
         exit(0);
       }
 
@@ -417,53 +396,55 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
         stop_report = true;
       }
 
-      char buffer[1024];
-      sprintf(buffer, std::string(traces_location + "/kernel-%d.trace").c_str(),
-              kernelid);
+      char buffer[2048];
+      std::string trace_filename = user_folder + "/traces/"; 
+      sprintf(buffer, "%s/kernel-%d-ctx_0x%lx.trace", trace_filename.c_str(),
+              ctx_kernelid[ctx], ctx);
 
       if (!stop_report) {
         if (!xz_compress_trace) {
-          resultsFile = fopen(buffer, "w");
+          ctx_resultsFile[ctx] = fopen(buffer, "w");
           printf("Writing results to %s\n", buffer);
         } else {
           char cmd_buffer[1039];
           sprintf(cmd_buffer, "xz -1 -T0 > %s.xz", buffer);
-          resultsFile = popen(cmd_buffer, "w");
+          ctx_resultsFile[ctx] = popen(cmd_buffer, "w");
           printf("Writing results to %s.xz\n", buffer);
         }
 
-        fprintf(resultsFile, "-kernel name = %s\n",
+        fprintf(ctx_resultsFile[ctx], "-kernel name = %s\n",
                 nvbit_get_func_name(ctx, p->f, true));
-        fprintf(resultsFile, "-kernel id = %d\n", kernelid);
-        fprintf(resultsFile, "-grid dim = (%d,%d,%d)\n", p->gridDimX,
+        fprintf(ctx_resultsFile[ctx], "-kernel id = %d\n", ctx_kernelid[ctx]);
+        fprintf(ctx_resultsFile[ctx], "-grid dim = (%d,%d,%d)\n", p->gridDimX,
                 p->gridDimY, p->gridDimZ);
-        fprintf(resultsFile, "-block dim = (%d,%d,%d)\n", p->blockDimX,
+        fprintf(ctx_resultsFile[ctx], "-block dim = (%d,%d,%d)\n", p->blockDimX,
                 p->blockDimY, p->blockDimZ);
-        fprintf(resultsFile, "-shmem = %d\n",
+        fprintf(ctx_resultsFile[ctx], "-shmem = %d\n",
                 shmem_static_nbytes + p->sharedMemBytes);
-        fprintf(resultsFile, "-nregs = %d\n", nregs);
-        fprintf(resultsFile, "-binary version = %d\n", binary_version);
-        fprintf(resultsFile, "-cuda stream id = %lu\n", (uint64_t)p->hStream);
-        fprintf(resultsFile, "-shmem base_addr = 0x%016lx\n",
+        fprintf(ctx_resultsFile[ctx], "-nregs = %d\n", nregs);
+        fprintf(ctx_resultsFile[ctx], "-binary version = %d\n", binary_version);
+        fprintf(ctx_resultsFile[ctx], "-cuda stream id = %lu\n", (uint64_t)p->hStream);
+        fprintf(ctx_resultsFile[ctx], "-shmem base_addr = 0x%016lx\n",
                 (uint64_t)nvbit_get_shmem_base_addr(ctx));
-        fprintf(resultsFile, "-local mem base_addr = 0x%016lx\n",
+        fprintf(ctx_resultsFile[ctx], "-local mem base_addr = 0x%016lx\n",
                 (uint64_t)nvbit_get_local_mem_base_addr(ctx));
-        fprintf(resultsFile, "-nvbit version = %s\n", NVBIT_VERSION);
-        fprintf(resultsFile, "-accelsim tracer version = %s\n", TRACER_VERSION);
-        fprintf(resultsFile, "-enable lineinfo = %d\n", lineinfo);
-        fprintf(resultsFile, "\n");
+        fprintf(ctx_resultsFile[ctx], "-nvbit version = %s\n", NVBIT_VERSION);
+        fprintf(ctx_resultsFile[ctx], "-accelsim tracer version = %s\n", TRACER_VERSION);
+        fprintf(ctx_resultsFile[ctx], "-enable lineinfo = %d\n", lineinfo);
+        fprintf(ctx_resultsFile[ctx], "\n");
 
-        fprintf(resultsFile,
+        fprintf(ctx_resultsFile[ctx],
                 "#traces format = [line_num] PC mask dest_num [reg_dests] "
                 "opcode src_num "
                 "[reg_srcs] mem_width [adrrescompress?] [mem_addresses] "
                 "immediate\n");
-        fprintf(resultsFile, "\n");
+        fprintf(ctx_resultsFile[ctx], "\n");
       }
 
-      kernelsFile = fopen(kernelslist_location.c_str(), "a");
+      kernelsFile = fopen(ctx_kernelslist[ctx].c_str(), "a");
       // This will be a relative path to the traces file
-      sprintf(buffer, "kernel-%d.trace%s", kernelid,
+      
+      sprintf(buffer, "kernel-%d-ctx_0x%lx.trace%s", ctx_kernelid[ctx], ctx,
               xz_compress_trace ? ".xz" : "");
       if (!stop_report) {
         fprintf(kernelsFile, buffer);
@@ -471,7 +452,7 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
       }
       fclose(kernelsFile);
 
-      statsFile = fopen(stats_location.c_str(), "a");
+      statsFile = fopen(ctx_stats_location[ctx].c_str(), "a");
       unsigned blocks = p->gridDimX * p->gridDimY * p->gridDimZ;
       unsigned threads = p->blockDimX * p->blockDimY * p->blockDimZ;
 
@@ -482,7 +463,7 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
 
       fclose(statsFile);
 
-      kernelid++;
+      ctx_kernelid[ctx]++;
       recv_thread_receiving = true;
 
     } else {
@@ -517,7 +498,7 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
           reported_dynamic_instr_counter - old_total_reported_insts;
       old_total_reported_insts = reported_dynamic_instr_counter;
 
-      statsFile = fopen(stats_location.c_str(), "a");
+      statsFile = fopen(ctx_stats_location[ctx].c_str(), "a");
       fprintf(statsFile, "%d,%d", total_insts_per_kernel,
               reported_insts_per_kernel);
       fprintf(statsFile, "\n");
@@ -525,14 +506,14 @@ void nvbit_at_cuda_event(CUcontext ctx, int is_exit, nvbit_api_cuda_t cbid,
 
       if (!stop_report) {
         if (!xz_compress_trace) {
-          fclose(resultsFile);
+          fclose(ctx_resultsFile[ctx]);
         } else {
-          pclose(resultsFile);
+          pclose(ctx_resultsFile[ctx]);
         }
       }
 
       if (active_from_start && dynamic_kernel_limit_end &&
-          kernelid > dynamic_kernel_limit_end)
+          ctx_kernelid[ctx] > dynamic_kernel_limit_end)
         active_region = false;
     }
   } else if (cbid == API_CUDA_cuProfilerStart && is_exit) {
@@ -632,7 +613,8 @@ void base_delta_compress(const uint64_t *addrs, const std::bitset<32> &mask,
   }
 }
 
-void *recv_thread_fun(void *) {
+void *recv_thread_fun(void *args) {
+  CUcontext ctx = (CUcontext)args;
   char *recv_buffer = (char *)malloc(CHANNEL_SIZE);
   while (recv_thread_started) {
     uint32_t num_recv_bytes = 0;
@@ -649,36 +631,36 @@ void *recv_thread_fun(void *) {
           break;
         }
 
-        fprintf(resultsFile, "%d ", ma->cta_id_x);
-        fprintf(resultsFile, "%d ", ma->cta_id_y);
-        fprintf(resultsFile, "%d ", ma->cta_id_z);
-        fprintf(resultsFile, "%d ", ma->warpid_tb);
+        fprintf(ctx_resultsFile[ctx], "%d ", ma->cta_id_x);
+        fprintf(ctx_resultsFile[ctx], "%d ", ma->cta_id_y);
+        fprintf(ctx_resultsFile[ctx], "%d ", ma->cta_id_z);
+        fprintf(ctx_resultsFile[ctx], "%d ", ma->warpid_tb);
         if (print_core_id) {
-          fprintf(resultsFile, "%d ", ma->sm_id);
-          fprintf(resultsFile, "%d ", ma->warpid_sm);
+          fprintf(ctx_resultsFile[ctx], "%d ", ma->sm_id);
+          fprintf(ctx_resultsFile[ctx], "%d ", ma->warpid_sm);
         }
         if (lineinfo) {
-          fprintf(resultsFile, "%d ", ma->line_num);
+          fprintf(ctx_resultsFile[ctx], "%d ", ma->line_num);
         }
-        fprintf(resultsFile, "%04x ", ma->vpc); // Print the virtual PC
-        fprintf(resultsFile, "%08x ", ma->active_mask & ma->predicate_mask);
+        fprintf(ctx_resultsFile[ctx], "%04x ", ma->vpc); // Print the virtual PC
+        fprintf(ctx_resultsFile[ctx], "%08x ", ma->active_mask & ma->predicate_mask);
         if (ma->GPRDst >= 0) {
-          fprintf(resultsFile, "1 ");
-          fprintf(resultsFile, "R%d ", ma->GPRDst);
+          fprintf(ctx_resultsFile[ctx], "1 ");
+          fprintf(ctx_resultsFile[ctx], "R%d ", ma->GPRDst);
         } else
-          fprintf(resultsFile, "0 ");
+          fprintf(ctx_resultsFile[ctx], "0 ");
 
         // Print the opcode.
-        fprintf(resultsFile, "%s ", id_to_opcode_map[ma->opcode_id].c_str());
+        fprintf(ctx_resultsFile[ctx], "%s ", id_to_opcode_map[ma->opcode_id].c_str());
         unsigned src_count = 0;
         for (int s = 0; s < MAX_SRC; s++) // GPR srcs count.
           if (ma->GPRSrcs[s] >= 0)
             src_count++;
-        fprintf(resultsFile, "%d ", src_count);
+        fprintf(ctx_resultsFile[ctx], "%d ", src_count);
 
         for (int s = 0; s < MAX_SRC; s++) // GPR srcs.
           if (ma->GPRSrcs[s] >= 0)
-            fprintf(resultsFile, "R%d ", ma->GPRSrcs[s]);
+            fprintf(ctx_resultsFile[ctx], "R%d ", ma->GPRSrcs[s]);
 
         // print addresses
         std::bitset<32> mask(ma->active_mask & ma->predicate_mask);
@@ -690,7 +672,7 @@ void *recv_thread_fun(void *) {
             if (!token.empty())
               tokens.push_back(token);
           }
-          fprintf(resultsFile, "%d ", get_datawidth_from_opcode(tokens));
+          fprintf(ctx_resultsFile[ctx], "%d ", get_datawidth_from_opcode(tokens));
 
           bool base_stride_success = false;
           uint64_t base_addr = 0;
@@ -709,31 +691,31 @@ void *recv_thread_fun(void *) {
 
           if (base_stride_success && enable_compress) {
             // base + stride format
-            fprintf(resultsFile, "%u 0x%llx %d ", address_format::base_stride,
+            fprintf(ctx_resultsFile[ctx], "%u 0x%llx %d ", address_format::base_stride,
                     base_addr, stride);
           } else if (!base_stride_success && enable_compress) {
             // base + delta format
-            fprintf(resultsFile, "%u 0x%llx ", address_format::base_delta,
+            fprintf(ctx_resultsFile[ctx], "%u 0x%llx ", address_format::base_delta,
                     base_addr);
             for (int s = 0; s < deltas.size(); s++) {
-              fprintf(resultsFile, "%lld ", deltas[s]);
+              fprintf(ctx_resultsFile[ctx], "%lld ", deltas[s]);
             }
           } else {
             // list all the addresses
-            fprintf(resultsFile, "%u ", address_format::list_all);
+            fprintf(ctx_resultsFile[ctx], "%u ", address_format::list_all);
             for (int s = 0; s < 32; s++) {
               if (mask.test(s))
-                fprintf(resultsFile, "0x%016lx ", ma->addrs[s]);
+                fprintf(ctx_resultsFile[ctx], "0x%016lx ", ma->addrs[s]);
             }
           }
         } else {
-          fprintf(resultsFile, "0 ");
+          fprintf(ctx_resultsFile[ctx], "0 ");
         }
 
         // Print the immediate
-        fprintf(resultsFile, "%d ", ma->imm);
+        fprintf(ctx_resultsFile[ctx], "%d ", ma->imm);
 
-        fprintf(resultsFile, "\n");
+        fprintf(ctx_resultsFile[ctx], "\n");
 
         num_processed_bytes += sizeof(inst_trace_t);
       }
@@ -746,7 +728,7 @@ void *recv_thread_fun(void *) {
 void nvbit_tool_init(CUcontext ctx) {
   recv_thread_started = true;
   channel_host.init(0, CHANNEL_SIZE, &channel_dev, NULL);
-  pthread_create(&recv_thread, NULL, recv_thread_fun, NULL);
+  pthread_create(&recv_thread, NULL, recv_thread_fun, ctx);
 }
 
 void nvbit_at_ctx_term(CUcontext ctx) {
@@ -754,4 +736,17 @@ void nvbit_at_ctx_term(CUcontext ctx) {
     recv_thread_started = false;
     pthread_join(recv_thread, NULL);
   }
+}
+
+void nvbit_at_ctx_init(CUcontext ctx)
+{
+  // Everytime we init a context, add the foldername and kernelid to the set
+  char buffer[2048];
+  sprintf(buffer, "kernelslist_ctx_0x%lx", ctx);
+  std::string tmp_kernelslist = user_folder + "/traces/" + buffer;
+  ctx_kernelslist[ctx] = tmp_kernelslist;
+  sprintf(buffer, "stats_ctx_0x%lx", ctx);
+  std::string tmp_stats = user_folder + "/traces/" + buffer;
+  ctx_stats_location[ctx] = tmp_stats;
+  ctx_kernelid[ctx] = 1;
 }
