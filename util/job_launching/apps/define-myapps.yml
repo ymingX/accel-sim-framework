@@ -101,24 +101,54 @@ Hopper_Microbenchmark_RegularUnits:
     exec_dir: "$GPUAPPS_ROOT/bin/Hopper_Microbenchmark/RegularUnits"
     data_dirs: "$GPUAPPS_ROOT/data_dirs/"
     execs:
-        # - alu_lat_double:
-        #     - args:
-        #         accel-sim-mem: 4G
-        # - alu_lat_half:
-        #     - args:
-        #         accel-sim-mem: 4G
+        - alu_lat_double:
+            - args:
+              accel-sim-mem: 4G
+        - alu_lat_half:
+            - args:
+              accel-sim-mem: 4G
+        - alu_lat_float:
+            - args:
+              accel-sim-mem: 4G
+        - alu_lat_int32:
+            - args:
+              accel-sim-mem: 4G
+
         - l1_bw_128:
             - args:
               accel-sim-mem: 4G
         - l1_bw_64f:
             - args:
               accel-sim-mem: 4G
+        - l1_bw_32f:
+            - args:
+              accel-sim-mem: 4G
+        - l1_lat:
+            - args:
+              accel-sim-mem: 4G
+        - shared_bw_64:
+            - args:
+              accel-sim-mem: 4G
+        - shared_bw:
+            - args:
+              accel-sim-mem: 4G
+        - shared_lat:
+            - args:
+              accel-sim-mem: 4G
+              
         - l2_bw_128:
             - args:
               accel-sim-mem: 4G
         - l2_bw_64f:
             - args:
               accel-sim-mem: 4G
+        - l2_bw_32f:
+            - args:
+              accel-sim-mem: 4G
+        - l2_lat:
+            - args:
+              accel-sim-mem: 4G
+
         - MaxFlops:
             - args:
               accel-sim-mem: 4G
@@ -128,44 +158,20 @@ Hopper_Microbenchmark_RegularUnits:
         - MaxFlops_int64:
             - args:
               accel-sim-mem: 4G
-        - mem_lat:
-            - args:
-              accel-sim-mem: 4G
-        - shared_bw_64:
-            - args:
-              accel-sim-mem: 4G
-        - alu_lat_float:
-            - args:
-              accel-sim-mem: 4G
-        - alu_lat_int32:
-            - args:
-              accel-sim-mem: 4G
-        - l1_bw_32f:
-            - args:
-              accel-sim-mem: 4G
-        - l1_lat:
-            - args:
-              accel-sim-mem: 4G
-        - l2_bw_32f:
-            - args:
-              accel-sim-mem: 4G
-        - l2_lat:
-            - args:
-              accel-sim-mem: 4G
         - MaxFlops_16:
             - args:
               accel-sim-mem: 4G
         - MaxFlops_int32:
             - args:
               accel-sim-mem: 4G
+
+        - mem_lat:
+            - args:
+              accel-sim-mem: 4G
         - mem_bw:
             - args:
               accel-sim-mem: 4G
-        - shared_bw:
-            - args:
-              accel-sim-mem: 4G
-        - shared_lat:
-            - args:
-              accel-sim-mem: 4G
+
+
 
     
